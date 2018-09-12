@@ -1,0 +1,80 @@
+const path = require('path');
+//生成html
+const HTMLWebpackPlugin = require('html-webpack-plugin');
+//清空打包文件夹
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+//css分离
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+//css压缩
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+
+//js打包
+const jsPackConfig={
+    entry: {
+        index: './src/index.js'
+    },
+    plugins: [
+        new CleanWebpackPlugin(['dist','dist1']),
+        new HTMLWebpackPlugin({
+            title: 'Code Splitting',
+            template: './src/index.html'
+        })
+    ],
+    output: {
+        filename: '[name].[chunkhash].js',
+        path: path.resolve(__dirname, 'dist')
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /(node_modules)/,
+                use: {
+                   loader: "babel-loader"
+                }
+            }
+        ]
+    }
+}
+const cssPackConfig={
+    entry: {
+        style_css: './src/style.css'
+    },
+    plugins: [
+        new ExtractTextPlugin('css/[name].css'),
+        new OptimizeCssAssetsPlugin({
+            cssProcessorOptions: {
+                mergeLonghand: false,
+                discardComments: { removeAll: true }
+            },
+            canPrint: true,
+        })
+    ],
+    output: {
+       filename: '[name].[chunkhash].js',
+       path: path.resolve(__dirname, 'dist1')
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use:ExtractTextPlugin.extract({
+                    fallback:'style-loader',
+                    use:'css-loader'
+                })
+            },
+            {
+                test:/\.(jpg|png)$/,
+                use:[{
+                    loader:'url-loader',
+                    options:{
+                        limit:10000, 
+                        outputPath:'images',
+                        publicPath:"../images"
+                    }
+                }]
+            }
+        ]
+    }
+}
+module.exports=[jsPackConfig,cssPackConfig]
